@@ -82,3 +82,83 @@ O relatório final (`relatorio_vendas.xlsx`) apresenta:
 - Os dados gerados são simulados e aleatórios
 - Os preços base dos veículos são fixos, mas têm variação aleatória
 - O relatório é formatado automaticamente para melhor visualização
+
+### dashboard_vendas.py
+Este script cria um dashboard interativo usando Streamlit com as seguintes características:
+
+1. **Cards Principais**:
+   - Total de Vendas
+   - Faturamento Total
+   - Ticket Médio
+   - Total de Modelos
+
+2. **Gráficos**:
+   - Evolução do Faturamento Diário
+   - Distribuição do Faturamento por Modelo
+   - Ranking de Faturamento por Modelo
+
+3. **Tabelas Detalhadas**:
+   - Resumo por Modelo
+   - Dados Brutos
+
+4. **Filtros**:
+   - Seleção por período
+   - Seleção por modelos
+   - Exportação de dados em CSV
+
+
+## Como Usar
+
+1. Primeiro, crie um ambiente virtual e ative-o:
+
+python -m venv venv
+venv\Scripts\activate
+
+2. Instale as dependências necessárias:
+
+pip install pandas openpyxl streamlit plotly
+
+
+3. Execute os scripts na seguinte ordem:
+
+python arquivo_vendas.py
+python analise_vendas.py
+streamlit run dashboard_vendas.py
+
+4. Verifique os arquivos gerados:
+   - `arquivo_vendas.csv`: Contém os dados brutos
+   - `relatorio_vendas.xlsx`: Contém as análises formatadas
+   - Dashboard interativo: Acessível via navegador após executar o Streamlit
+
+## Resultados
+O projeto oferece três formas de visualização dos dados:
+
+1. **Arquivo CSV** (`arquivo_vendas.csv`):
+   - Dados brutos das vendas
+
+2. **Relatório Excel** (`relatorio_vendas.xlsx`):
+   - Visão geral do faturamento por produto
+   - Identificação do produto mais vendido
+   - Identificação do produto menos vendido
+   - Valores formatados em reais (R$)
+   - Layout profissional com formatação adequada
+
+3. **Dashboard Interativo**:
+   - Visualização em tempo real dos dados
+   - Gráficos interativos
+   - Filtros dinâmicos
+   - Interface moderna e responsiva
+   - Exportação de dados
+
+## Requisitos
+- Python 3.x
+- pandas
+- openpyxl
+- streamlit
+- plotly
+
+## Observações
+- Os dados gerados são simulados e aleatórios
+- Os preços base dos veículos são fixos, mas têm variação aleatória
+- O relatório é formatado automaticamente para melhor visualização
+- O dashboard é interativo e pode ser acessado via navegador web
