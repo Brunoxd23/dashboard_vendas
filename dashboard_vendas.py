@@ -19,24 +19,46 @@ st.set_page_config(
 st.markdown("""
 <style>
     .card {
-        padding: 20px;
+        padding: 15px;
         border-radius: 10px;
-        margin: 10px;
-        height: 120px; /* Altura fixa para todos os cards */
+        margin: 5px;
+        min-height: 100px;
+        height: auto;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        box-sizing: border-box;
+        width: 100%;
     }
     .card-title {
-        font-size: 0.9em;
+        font-size: 0.85em;
         color: rgba(255,255,255,0.8);
-        margin-bottom: 10px;
+        margin-bottom: 8px;
+        line-height: 1.2;
     }
     .card-value {
-        font-size: 1.6em; /* Reduzido um pouco para caber melhor */
+        font-size: 1.3em;
         font-weight: bold;
         color: white;
-        white-space: nowrap; /* Evita quebra de linha */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.2;
+    }
+    @media (max-width: 1200px) {
+        .card-value {
+            font-size: 1.1em;
+        }
+    }
+    @media (max-width: 992px) {
+        .card {
+            padding: 10px;
+        }
+        .card-title {
+            font-size: 0.8em;
+        }
+        .card-value {
+            font-size: 1em;
+        }
     }
     .card-blue {
         background: linear-gradient(135deg, #6B7FD7 0%, #8662DD 100%);
@@ -59,6 +81,8 @@ def format_currency(value):
 
 # Função para criar um card personalizado
 def create_metric_card(title, value, color):
+    # Remover espaços extras do valor para economizar espaço
+    value = str(value).strip()
     return f"""
     <div class="card card-{color}">
         <div class="card-title">{title}</div>
@@ -95,21 +119,27 @@ with col1:
     )
 
 with col2:
+    faturamento_total = format_currency(df['faturamento'].sum())
+    # Remover espaços entre R$ e o valor
+    faturamento_total = faturamento_total.replace(" ", "")
     st.markdown(
         create_metric_card(
             "Faturamento Total",
-            format_currency(df['faturamento'].sum()).replace(" ", ""),  # Remove espaço entre R$ e valor
+            faturamento_total,
             "green"
         ),
         unsafe_allow_html=True
     )
 
 with col3:
+    ticket_medio = format_currency(df['faturamento'].mean())
+    # Remover espaços entre R$ e o valor
+    ticket_medio = ticket_medio.replace(" ", "")
     st.markdown(
         create_metric_card(
             "Ticket Médio",
-            format_currency(df['faturamento'].mean()),
-            "orange"  # Mudado de yellow para orange para melhor visibilidade
+            ticket_medio,
+            "orange"
         ),
         unsafe_allow_html=True
     )
