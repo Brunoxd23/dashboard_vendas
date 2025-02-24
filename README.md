@@ -162,3 +162,49 @@ O projeto oferece três formas de visualização dos dados:
 - Os preços base dos veículos são fixos, mas têm variação aleatória
 - O relatório é formatado automaticamente para melhor visualização
 - O dashboard é interativo e pode ser acessado via navegador web
+
+# Instalação das dependências na AWS
+
+mkdir meu_projeto
+
+CD meu_projeto
+
+python3 -m venv venv
+source venv/bin/activate
+
+# 1. Atualize o sistema
+sudo yum update -y
+
+# 2. Instale o Python e pip
+sudo yum install python3 python3-pip -y
+
+# 3. Instale o git
+sudo yum install git -y
+
+# 4. Clone seu repositório
+https://github.com/Brunoxd23/dashboard_vendas.git
+cd dashboard_vendas
+
+# 5. Instale as dependências
+pip3 install -r requirements.txt
+
+# 6. Instale o Streamlit
+pip3 install streamlit
+
+# 7. Instale e use o tmux para manter o dashboard rodando
+sudo yum install tmux -y
+
+tmux new -s dashboard
+
+Anexar a uma sessão existente:
+
+tmux attach-session -t dashboard
+
+Listar sessões ativas:
+
+tmux list-sessions
+
+Sair do tmux sem fechar a sessão:
+Pressione Ctrl + B, depois D.
+# 8. Dentro da sessão tmux, execute o dashboard
+streamlit run dashboard.py --server.port 8501 --server.address 0.0.0.0
