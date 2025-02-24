@@ -207,7 +207,7 @@ tmux list-sessions
 Sair do tmux sem fechar a sessão:
 Pressione Ctrl + B, depois D.
 # 8. Dentro da sessão tmux, execute o dashboard
-streamlit run dashboard.py --server.port 8501 --server.address 0.0.0.0
+streamlit run dashboard_vendas.py --server.port 8501 --server.address 0.0.0.0
 
 # 9. Puxe as atualizações do GitHub
 git pull origin main
