@@ -102,25 +102,43 @@ def load_data():
 # Carregando os dados
 df = load_data()
 
+# Mover os filtros para antes da criação dos cards e gráficos
+st.sidebar.title("Filtros")
+st.sidebar.subheader("Selecione o período")
+data_inicio = st.sidebar.date_input("Data Inicial", df['data'].min())
+data_fim = st.sidebar.date_input("Data Final", df['data'].max())
+
+modelos = st.sidebar.multiselect(
+    "Selecione os Modelos",
+    options=df['produto'].unique(),
+    default=df['produto'].unique()
+)
+
+# Aplicar filtros ao DataFrame
+df_filtered = df[
+    (df['data'].dt.date >= data_inicio) & 
+    (df['data'].dt.date <= data_fim) & 
+    (df['produto'].isin(modelos))
+]
+
 # Título do Dashboard
 st.title("📊 Dashboard de Vendas de Veículos")
 
-# Layout dos cards em colunas
+# Layout dos cards em colunas - Agora usando df_filtered
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.markdown(
         create_metric_card(
             "Total de Vendas",
-            f"{df['quantidade'].sum():,}",
+            f"{df_filtered['quantidade'].sum():,}",
             "blue"
         ),
         unsafe_allow_html=True
     )
 
 with col2:
-    faturamento_total = format_currency(df['faturamento'].sum())
-    # Remover espaços entre R$ e o valor
+    faturamento_total = format_currency(df_filtered['faturamento'].sum())
     faturamento_total = faturamento_total.replace(" ", "")
     st.markdown(
         create_metric_card(
@@ -132,8 +150,7 @@ with col2:
     )
 
 with col3:
-    ticket_medio = format_currency(df['faturamento'].mean())
-    # Remover espaços entre R$ e o valor
+    ticket_medio = format_currency(df_filtered['faturamento'].mean())
     ticket_medio = ticket_medio.replace(" ", "")
     st.markdown(
         create_metric_card(
@@ -148,18 +165,18 @@ with col4:
     st.markdown(
         create_metric_card(
             "Total de Modelos",
-            f"{df['produto'].nunique()}",
+            f"{df_filtered['produto'].nunique()}",
             "red"
         ),
         unsafe_allow_html=True
     )
 
-# Criando duas colunas para os gráficos
+# Criando duas colunas para os gráficos - Usando df_filtered
 col_left, col_right = st.columns(2)
 
 with col_left:
     st.subheader("Evolução do Faturamento Diário")
-    faturamento_diario = df.groupby('data')['faturamento'].sum().reset_index()
+    faturamento_diario = df_filtered.groupby('data')['faturamento'].sum().reset_index()
     fig_evolucao = px.line(
         faturamento_diario,
         x='data',
@@ -177,7 +194,7 @@ with col_left:
 
 with col_right:
     st.subheader("Distribuição do Faturamento por Modelo")
-    faturamento_modelo = df.groupby('produto')['faturamento'].sum().reset_index()
+    faturamento_modelo = df_filtered.groupby('produto')['faturamento'].sum().reset_index()
     fig_pizza = px.pie(
         faturamento_modelo,
         values='faturamento',
@@ -190,9 +207,9 @@ with col_right:
     )
     st.plotly_chart(fig_pizza, use_container_width=True)
 
-# Ranking de Faturamento por Modelo
+# Ranking de Faturamento por Modelo - Usando df_filtered
 st.subheader("Ranking de Faturamento por Modelo")
-faturamento_modelo = df.groupby('produto').agg({
+faturamento_modelo = df_filtered.groupby('produto').agg({
     'faturamento': 'sum',
     'quantidade': 'sum'
 }).reset_index()
@@ -214,7 +231,7 @@ fig_barras.update_layout(
 )
 st.plotly_chart(fig_barras, use_container_width=True)
 
-# Tabelas detalhadas
+# Tabelas detalhadas - Usando df_filtered
 st.subheader("Dados Detalhados")
 tabs = st.tabs(["Resumo por Modelo", "Dados Brutos"])
 
@@ -229,24 +246,12 @@ with tabs[0]:
 
 with tabs[1]:
     st.dataframe(
-        df.style.format({
+        df_filtered.style.format({
             'preco_unitario': 'R$ {:,.2f}',
             'faturamento': 'R$ {:,.2f}'
         }),
         hide_index=True
     )
-
-# Filtros no Sidebar
-st.sidebar.title("Filtros")
-st.sidebar.subheader("Selecione o período")
-data_inicio = st.sidebar.date_input("Data Inicial", df['data'].min())
-data_fim = st.sidebar.date_input("Data Final", df['data'].max())
-
-modelos = st.sidebar.multiselect(
-    "Selecione os Modelos",
-    options=df['produto'].unique(),
-    default=df['produto'].unique()
-)
 
 # Download dos dados
 st.sidebar.markdown("---")
