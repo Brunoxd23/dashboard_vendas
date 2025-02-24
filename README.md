@@ -206,6 +206,10 @@ tmux list-sessions
 
 Sair do tmux sem fechar a sessão:
 Pressione Ctrl + B, depois D.
+
+para entrar na sessão
+tmux attach-session -t dashboard
+
 # 8. Dentro da sessão tmux, execute o dashboard
 streamlit run dashboard_vendas.py --server.port 8501 --server.address 0.0.0.0
 
