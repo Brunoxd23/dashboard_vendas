@@ -3,18 +3,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
-import locale
-
-# Configurando a localização para formato brasileiro de moeda
-try:
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-except:
-    # Fallback para ambientes que não têm o locale pt_BR instalado (como Streamlit Cloud)
-    try:
-        locale.setlocale(locale.LC_ALL, 'Portuguese_Brazil.1252')
-    except:
-        st.warning("Não foi possível configurar o locale para português brasileiro. Os valores podem não aparecer no formato R$.")
-        pass
 
 # Configuração da página
 st.set_page_config(
@@ -22,6 +10,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Função para formatar valores em reais sem depender do locale
+def format_currency(value):
+    return f"R$ {value:,.2f}"
 
 # CSS personalizado atualizado para os cards
 st.markdown("""
@@ -83,13 +75,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Função para formatar valores em reais
-def format_currency(value):
-    return f"R$ {value:,.2f}"
-
 # Função para criar um card personalizado
 def create_metric_card(title, value, color):
-    # Remover espaços extras do valor para economizar espaço
     value = str(value).strip()
     return f"""
     <div class="card card-{color}">
@@ -101,62 +88,63 @@ def create_metric_card(title, value, color):
 # Função para carregar os dados
 @st.cache_data
 def load_data():
-    # Carregando os dados brutos
-    df = pd.read_csv('arquivo_vendas.csv')
-    df['faturamento'] = df['quantidade'] * df['preco_unitario']
-    df['data'] = pd.to_datetime(df['data'], format='%d/%m/%Y')
-    return df
-
-# Exemplo de como acessar as configurações do secrets.toml
-try:
-    # Acessando configurações
-    ambiente = st.secrets["geral"]["ambiente"]
-    limite_registros = st.secrets["configuracoes"]["limite_registros"]
-    
-    # Exemplo de uso de uma chave de API
-    # api_key = st.secrets["api_keys"]["exemplo_api_key"]
-    
-    # Exemplo de conexão com banco de dados
-    # db_config = {
-    #     "host": st.secrets["banco_dados"]["host"],
-    #     "port": st.secrets["banco_dados"]["porta"],
-    #     "user": st.secrets["banco_dados"]["usuario"],
-    #     "password": st.secrets["banco_dados"]["senha"],
-    #     "database": st.secrets["banco_dados"]["nome_banco"]
-    # }
-    
-except Exception as e:
-    # Fallback para quando as secrets não estão disponíveis (desenvolvimento local)
-    ambiente = "desenvolvimento"
-    limite_registros = 1000
-    # st.warning(f"Usando configurações padrão: {e}")
+    try:
+        df = pd.read_csv('arquivo_vendas.csv')
+        df['faturamento'] = df['quantidade'] * df['preco_unitario']
+        df['data'] = pd.to_datetime(df['data'], format='%d/%m/%Y')
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados: {e}")
+        # Criar um DataFrame vazio com as colunas esperadas
+        return pd.DataFrame({
+            'data': [],
+            'produto': [],
+            'quantidade': [],
+            'preco_unitario': [],
+            'faturamento': []
+        })
 
 # Carregando os dados
 df = load_data()
 
-# Mover os filtros para antes da criação dos cards e gráficos
-st.sidebar.title("Filtros")
-st.sidebar.subheader("Selecione o período")
-data_inicio = st.sidebar.date_input("Data Inicial", df['data'].min())
-data_fim = st.sidebar.date_input("Data Final", df['data'].max())
-
-modelos = st.sidebar.multiselect(
-    "Selecione os Modelos",
-    options=df['produto'].unique(),
-    default=df['produto'].unique()
-)
-
-# Aplicar filtros ao DataFrame
-df_filtered = df[
-    (df['data'].dt.date >= data_inicio) & 
-    (df['data'].dt.date <= data_fim) & 
-    (df['produto'].isin(modelos))
-]
-
 # Título do Dashboard
 st.title("📊 Dashboard de Vendas de Veículos")
 
-# Layout dos cards em colunas - Agora usando df_filtered
+# Verificar se temos dados
+if df.empty:
+    st.warning("Não foi possível carregar os dados. Por favor, verifique se o arquivo CSV está disponível.")
+    st.stop()
+
+# Filtros
+st.sidebar.title("Filtros")
+st.sidebar.subheader("Selecione o período")
+
+# Garantir que temos datas válidas
+min_date = df['data'].min().date() if not df.empty else datetime.now().date()
+max_date = df['data'].max().date() if not df.empty else datetime.now().date()
+
+data_inicio = st.sidebar.date_input("Data Inicial", min_date)
+data_fim = st.sidebar.date_input("Data Final", max_date)
+
+# Garantir que temos produtos válidos
+produtos_disponiveis = df['produto'].unique() if not df.empty else []
+modelos = st.sidebar.multiselect(
+    "Selecione os Modelos",
+    options=produtos_disponiveis,
+    default=produtos_disponiveis
+)
+
+# Aplicar filtros ao DataFrame
+if not df.empty and modelos:
+    df_filtered = df[
+        (df['data'].dt.date >= data_inicio) & 
+        (df['data'].dt.date <= data_fim) & 
+        (df['produto'].isin(modelos))
+    ]
+else:
+    df_filtered = df.copy()
+
+# Layout dos cards em colunas
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
@@ -203,7 +191,7 @@ with col4:
         unsafe_allow_html=True
     )
 
-# Criando duas colunas para os gráficos - Usando df_filtered
+# Criando duas colunas para os gráficos
 col_left, col_right = st.columns(2)
 
 with col_left:
@@ -239,7 +227,7 @@ with col_right:
     )
     st.plotly_chart(fig_pizza, use_container_width=True)
 
-# Ranking de Faturamento por Modelo - Usando df_filtered
+# Ranking de Faturamento por Modelo
 st.subheader("Ranking de Faturamento por Modelo")
 faturamento_modelo = df_filtered.groupby('produto').agg({
     'faturamento': 'sum',
@@ -263,7 +251,7 @@ fig_barras.update_layout(
 )
 st.plotly_chart(fig_barras, use_container_width=True)
 
-# Tabelas detalhadas - Usando df_filtered
+# Tabelas detalhadas
 st.subheader("Dados Detalhados")
 tabs = st.tabs(["Resumo por Modelo", "Dados Brutos"])
 
