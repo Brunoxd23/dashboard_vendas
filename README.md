@@ -45,7 +45,7 @@ Este script analisa os dados e gera um relatório Excel com três abas:
 1. Primeiro, crie um ambiente virtual e ative-o:
 
 2. # Windows
-python -m venv venv
+py -m venv venv
 venv\Scripts\activate
 
 # Linux/Mac

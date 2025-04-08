@@ -6,7 +6,15 @@ from datetime import datetime
 import locale
 
 # Configurando a localização para formato brasileiro de moeda
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except:
+    # Fallback para ambientes que não têm o locale pt_BR instalado (como Streamlit Cloud)
+    try:
+        locale.setlocale(locale.LC_ALL, 'Portuguese_Brazil.1252')
+    except:
+        st.warning("Não foi possível configurar o locale para português brasileiro. Os valores podem não aparecer no formato R$.")
+        pass
 
 # Configuração da página
 st.set_page_config(
@@ -98,6 +106,30 @@ def load_data():
     df['faturamento'] = df['quantidade'] * df['preco_unitario']
     df['data'] = pd.to_datetime(df['data'], format='%d/%m/%Y')
     return df
+
+# Exemplo de como acessar as configurações do secrets.toml
+try:
+    # Acessando configurações
+    ambiente = st.secrets["geral"]["ambiente"]
+    limite_registros = st.secrets["configuracoes"]["limite_registros"]
+    
+    # Exemplo de uso de uma chave de API
+    # api_key = st.secrets["api_keys"]["exemplo_api_key"]
+    
+    # Exemplo de conexão com banco de dados
+    # db_config = {
+    #     "host": st.secrets["banco_dados"]["host"],
+    #     "port": st.secrets["banco_dados"]["porta"],
+    #     "user": st.secrets["banco_dados"]["usuario"],
+    #     "password": st.secrets["banco_dados"]["senha"],
+    #     "database": st.secrets["banco_dados"]["nome_banco"]
+    # }
+    
+except Exception as e:
+    # Fallback para quando as secrets não estão disponíveis (desenvolvimento local)
+    ambiente = "desenvolvimento"
+    limite_registros = 1000
+    # st.warning(f"Usando configurações padrão: {e}")
 
 # Carregando os dados
 df = load_data()
