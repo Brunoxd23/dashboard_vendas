@@ -1,0 +1,9 @@
+ # Ignorar arquivos grandes e desnecessários para o deploy na Vercel
+venv/
+__pycache__/
+*.csv
+*.xlsx
+*.pyc
+dashboard_vendas.py
+analise_vendas.py
+arquivo_vendas.py
